@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 from struct import pack, unpack
+import sys
 
 CHUNK_TYPES = {
     1: 'TRACK_CHUNK',
@@ -29,9 +30,7 @@ def solomon(arr, parts):
     for i in range(0, parts * 8, 8):
         yield arr[i:i+8]
 
-def chunk_reader(wrkpath):
-    
-    wrkfile = open(wrkpath, 'rb')
+def chunk_reader(wrkfile):
     
     if wrkfile.read(8) != b'CAKEWALK':
         raise ValueError('invalid file format')
@@ -39,7 +38,9 @@ def chunk_reader(wrkpath):
     wrkfile.read(1) # byte I don't care about
     
     mm_version = wrkfile.read(2)
-    version = "%i.%i" % (mm_version[1], mm_version[0])
+    major = ord(mm_version[1])
+    minor = ord(mm_version[0])
+    version = "%i.%i" % (major, minor)
     
     yield ('VERSION_CHUNK', 2, None, version)
     
@@ -67,9 +68,7 @@ def chunk_reader(wrkpath):
 
 if __name__ == '__main__':
     
-    wrkpath = '/Users/Jeremy/Desktop/from backup/My Music/midi/organ.wrk'
-    
-    for chunk in chunk_reader(wrkpath):
+    for chunk in chunk_reader(sys.stdin):
         print(chunk)
         # if chunk[0] == 'TRACK_NAME?':
         #     (tnum, tname_len) = unpack('HB', chunk[2][:3])
